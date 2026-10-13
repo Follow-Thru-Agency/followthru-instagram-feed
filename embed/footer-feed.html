@@ -1,0 +1,74 @@
+<!-- FollowThru footer Instagram feed. Paste into a Webflow Code Embed (or page/site footer custom code).
+     Source: https://github.com/Follow-Thru-Agency/followthru-instagram-feed
+     Fills the footer marquee (.footer-marquee-holder .footer-marquee-card) with the 9 newest
+     @followthrucreative posts. If the feed is unreachable or has fewer than 9 posts, it does nothing
+     and the original images stay. -->
+<script>
+(function () {
+  var BASE = "https://follow-thru-agency.github.io/followthru-instagram-feed/";
+  var NEED = 9;
+
+  function valid(p) {
+    return p && typeof p.image === "string" && p.image &&
+      typeof p.url === "string" && p.url.indexOf("https://www.instagram.com/") === 0;
+  }
+
+  function apply(posts) {
+    var cards = document.querySelectorAll(".footer-marquee-holder .footer-marquee-card");
+    for (var i = 0; i < cards.length; i++) {
+      var post = posts[i % NEED];
+      var card = cards[i];
+      var img = card.querySelector("img.footer-marquee-image");
+      var wrap = card.querySelector(".footer-marquee-image-wrapper");
+      if (!img || !wrap) continue;
+      var src = /^https?:\/\//.test(post.image) ? post.image : BASE + post.image.replace(/^\//, "");
+      img.removeAttribute("srcset");
+      img.removeAttribute("sizes");
+      img.setAttribute("width", "600");
+      img.setAttribute("height", "600");
+      img.src = src;
+      img.alt = post.alt || "FollowThru on Instagram";
+
+      var link = wrap.parentNode && wrap.parentNode.tagName === "A" ? wrap.parentNode :
+        (card.tagName === "A" ? card : null);
+      if (!link) {
+        link = document.createElement("a");
+        link.style.display = "block";
+        link.style.color = "inherit";
+        link.style.textDecoration = "none";
+        wrap.parentNode.insertBefore(link, wrap);
+        link.appendChild(wrap);
+      }
+      link.href = post.url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.setAttribute("aria-label", "View on Instagram: " + img.alt);
+    }
+  }
+
+  function run() {
+    if (window.__ftIgFeed || !window.fetch) return;
+    window.__ftIgFeed = true;
+    if (!document.querySelector(".footer-marquee-holder .footer-marquee-card")) return;
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 4000);
+    var bust = Math.floor(new Date().getTime() / 3600000);
+    fetch(BASE + "feed.json?h=" + bust, ctrl ? { signal: ctrl.signal } : {})
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (data) {
+        clearTimeout(timer);
+        var posts = [];
+        var list = (data && data.posts) || [];
+        for (var i = 0; i < list.length; i++) if (valid(list[i])) posts.push(list[i]);
+        if (posts.length >= NEED) apply(posts);
+      })
+      ["catch"](function () { clearTimeout(timer); });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script>

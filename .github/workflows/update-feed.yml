@@ -1,0 +1,53 @@
+name: Update Instagram feed
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # daily 11:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-feed
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check APIFY_TOKEN secret
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: |
+          if [ -z "$APIFY_TOKEN" ]; then
+            echo "::error::APIFY_TOKEN secret not set. Add it with: gh secret set APIFY_TOKEN --repo ${{ github.repository }}"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet Pillow requests
+
+      - name: Fetch latest posts
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: python scripts/update_feed.py
+
+      - name: Commit and push if changed
+        run: |
+          git add -A feed.json images
+          if git diff --cached --quiet; then
+            echo "No changes to the feed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update Instagram feed $(date -u +%Y-%m-%d)"
+          git push
