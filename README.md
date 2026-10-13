@@ -3,7 +3,7 @@
 A free, self-hosted Instagram feed for the footer of followthruagency.com.
 
 Once a day, a GitHub Action asks Apify for the newest posts on
-[@followthrucreative](https://www.instagram.com/followthrucreative/), saves the 9 newest as
+[@followthruagency](https://www.instagram.com/followthruagency/), saves the 9 newest as
 600×600 JPEGs in `images/`, and writes `feed.json`. GitHub Pages serves both publicly:
 
 - Feed: https://follow-thru-agency.github.io/followthru-instagram-feed/feed.json
@@ -72,3 +72,9 @@ APIFY_TOKEN=... python3 scripts/update_feed.py
 
 `APIFY_INPUT_FILE=items.json` runs the script against a saved Apify dataset instead of calling
 Apify (useful for testing without spending credit).
+
+## Excluded posts
+Some posts must never appear on the website (no client permission). Their shortcodes are in `EXCLUDE` in `scripts/update_feed.py` (add more via the `IG_EXCLUDE` repo variable/env, comma-separated). Currently excluded: `Dc1Zx9BJ7uz` (body sculpting brand hero test).
+
+## Seed
+On 2026-10-13 the feed was seeded by hand with the 9 newest permitted posts (images via `instagram.com/p/<code>/media/?size=l`). The daily job replaces this once `APIFY_TOKEN` is set.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh feed.json + images/ with @followthrucreative's newest Instagram posts.
+"""Refresh feed.json + images/ with @followthruagency's newest Instagram posts.
 
 Uses Apify's instagram-post-scraper (falls back to instagram-scraper).
 Safety rule: if anything fails or fewer than MIN_POSTS usable posts come back,
@@ -8,7 +8,7 @@ the last good feed.
 
 Env:
   APIFY_TOKEN   required
-  IG_USERNAME   optional, default "followthrucreative"
+  IG_USERNAME   optional, default "followthruagency"
   APIFY_INPUT_FILE  optional, path to a local JSON list of dataset items
                     (for offline testing; skips the Apify call)
 """
@@ -23,7 +23,11 @@ from datetime import datetime, timezone
 import requests
 from PIL import Image, ImageOps
 
-USERNAME = os.environ.get("IG_USERNAME", "followthrucreative")
+USERNAME = os.environ.get("IG_USERNAME", "followthruagency")
+
+# Posts that must never appear on the website (no client permission to show them).
+# Dc1Zx9BJ7uz = body sculpting brand hero test (client not cleared for public use).
+EXCLUDE = set(filter(None, os.environ.get("IG_EXCLUDE", "").split(","))) | {"Dc1Zx9BJ7uz"}
 FEED_SIZE = 9
 MIN_POSTS = 6
 RESULTS_LIMIT = 12
@@ -158,7 +162,7 @@ def main():
     seen = set()
     for item in items:
         sc, src = shortcode(item), image_url(item)
-        if not sc or not src or sc in seen:
+        if not sc or not src or sc in seen or sc in EXCLUDE:
             continue
         seen.add(sc)
         candidates.append((item.get("timestamp") or "", sc, src, item))
