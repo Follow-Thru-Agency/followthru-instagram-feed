@@ -51,3 +51,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update Instagram feed $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Refresh jsDelivr cache (the website loads the feed from jsDelivr first)
+        run: |
+          curl -fsS "https://purge.jsdelivr.net/gh/Follow-Thru-Agency/followthru-instagram-feed@main/feed.json" || echo "jsDelivr purge failed (cache refreshes within 12h anyway)"
