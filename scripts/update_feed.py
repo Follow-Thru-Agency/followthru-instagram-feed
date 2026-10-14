@@ -12,6 +12,7 @@ Env:
   APIFY_INPUT_FILE  optional, path to a local JSON list of dataset items
                     (for offline testing; skips the Apify call)
 """
+import hashlib
 import io
 import json
 import os
@@ -186,10 +187,13 @@ def main():
             except Exception as e:  # noqa: BLE001
                 log("  skip %s: image download/convert failed (%s)" % (sc, e))
                 continue
-            with open(os.path.join(tmp, sc + ".jpg"), "wb") as f:
+            # Content hash in the filename: a changed image gets a new URL, so the CDN
+            # (jsDelivr caches @main per file, unevenly) can never serve a stale copy.
+            name = "%s-%s.jpg" % (sc, hashlib.sha1(data).hexdigest()[:8])
+            with open(os.path.join(tmp, name), "wb") as f:
                 f.write(data)
             posts.append({
-                "image": "images/%s.jpg" % sc,
+                "image": "images/%s" % name,
                 "url": "https://www.instagram.com/p/%s/" % sc,
                 "alt": alt_text(item),
                 "width": width,
