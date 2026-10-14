@@ -43,6 +43,16 @@
       img.src = src;
       img.alt = post.alt || "FollowThru on Instagram";
       img.addEventListener("load", pace);
+      if (!/^https?:\/\//.test(post.image)) {
+        /* a CDN edge can briefly 404 a brand-new file: retry once from the next base */
+        img.onerror = (function (path) {
+          return function () {
+            this.onerror = null;
+            var k = BASES.indexOf(base);
+            if (k > -1 && k + 1 < BASES.length) this.src = BASES[k + 1] + path;
+          };
+        })(post.image.replace(/^\//, ""));
+      }
       card.classList.add("ft-ig");
       var link = wrap.parentNode && wrap.parentNode.tagName === "A" ? wrap.parentNode :
         (card.tagName === "A" ? card : null);

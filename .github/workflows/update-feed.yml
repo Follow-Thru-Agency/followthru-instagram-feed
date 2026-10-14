@@ -54,4 +54,11 @@ jobs:
 
       - name: Refresh jsDelivr cache (the website loads the feed from jsDelivr first)
         run: |
-          curl -fsS "https://purge.jsdelivr.net/gh/Follow-Thru-Agency/followthru-instagram-feed@main/feed.json" || echo "jsDelivr purge failed (cache refreshes within 12h anyway)"
+          # Images first, then feed.json: jsDelivr edges resolve @main unevenly, so a feed that
+          # points at brand-new image files must not go live before those files resolve.
+          P="https://purge.jsdelivr.net/gh/Follow-Thru-Agency/followthru-instagram-feed@main"
+          for img in $(python3 -c "import json;print(' '.join(p['image'] for p in json.load(open('feed.json'))['posts']))"); do
+            curl -fsS -o /dev/null "$P/$img" || echo "purge failed for $img"
+          done
+          sleep 90
+          curl -fsS "$P/feed.json" || echo "jsDelivr purge failed (cache refreshes within 12h anyway)"
