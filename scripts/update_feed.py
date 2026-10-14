@@ -31,7 +31,7 @@ EXCLUDE = set(filter(None, os.environ.get("IG_EXCLUDE", "").split(","))) | {"Dc1
 FEED_SIZE = 9
 MIN_POSTS = 6
 RESULTS_LIMIT = 12
-IMAGE_SIZE = 600
+IMAGE_HEIGHT = 480  # footer tiles are 160px tall; 3x for sharp retina. Width follows the post's own shape.
 JPEG_QUALITY = 82
 COST_PER_POST_USD = 0.0026  # conservative estimate; actual free-tier price is lower
 
@@ -135,13 +135,17 @@ def alt_text(item):
     return caption[:119].rsplit(" ", 1)[0] + "…"
 
 
-def to_square_jpeg(raw):
+def to_jpeg(raw):
+    """Resize to IMAGE_HEIGHT tall, keeping the post's own shape (never crop: a square
+    crop of a 4:5 or 9:16 post cuts off the top, which is usually someone's head)."""
     img = Image.open(io.BytesIO(raw))
     img = ImageOps.exif_transpose(img).convert("RGB")
-    img = ImageOps.fit(img, (IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS, centering=(0.5, 0.5))
+    if img.height > IMAGE_HEIGHT:
+        width = max(1, round(img.width * IMAGE_HEIGHT / img.height))
+        img = img.resize((width, IMAGE_HEIGHT), Image.LANCZOS)
     out = io.BytesIO()
     img.save(out, "JPEG", quality=JPEG_QUALITY, optimize=True, progressive=True)
-    return out.getvalue()
+    return out.getvalue(), img.width, img.height
 
 
 def main():
@@ -178,7 +182,7 @@ def main():
             try:
                 r = requests.get(src, headers={"User-Agent": UA}, timeout=30)
                 r.raise_for_status()
-                data = to_square_jpeg(r.content)
+                data, width, height = to_jpeg(r.content)
             except Exception as e:  # noqa: BLE001
                 log("  skip %s: image download/convert failed (%s)" % (sc, e))
                 continue
@@ -188,6 +192,8 @@ def main():
                 "image": "images/%s.jpg" % sc,
                 "url": "https://www.instagram.com/p/%s/" % sc,
                 "alt": alt_text(item),
+                "width": width,
+                "height": height,
                 "timestamp": ts or None,
             })
 

@@ -1,19 +1,31 @@
-<!-- FollowThru footer Instagram feed. Paste into a Webflow Code Embed (or page/site footer custom code).
-     Source: https://github.com/Follow-Thru-Agency/followthru-instagram-feed
-     Fills the footer marquee (.footer-marquee-holder .footer-marquee-card) with the 9 newest
-     @followthruagency posts. If the feed is unreachable or has fewer than 9 posts, it does nothing
-     and the original images stay. -->
+<style>
+/* Footer strip: slow scroll (speed set in px/s by the script below), pause on hover, still for reduced motion */
+.footer-marquee-holder.ft-footer-marquee{animation:ftFooterMarquee 50s linear infinite !important}
+.footer-marquee-wrapper:hover .footer-marquee-holder.ft-footer-marquee{animation-play-state:paused !important}
+@keyframes ftFooterMarquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@media (prefers-reduced-motion: reduce){.footer-marquee-holder.ft-footer-marquee{animation:none !important;transform:none !important}}
+/* Instagram tiles keep each post's own shape: same height as the template tile, width follows the image, never cropped */
+.footer-marquee-card.ft-ig{width:auto !important}
+.footer-marquee-card.ft-ig a,.footer-marquee-card.ft-ig .footer-marquee-image-wrapper{width:auto !important;height:var(--ft-ig-h,160px) !important}
+.footer-marquee-card.ft-ig img.footer-marquee-image{width:auto !important;height:var(--ft-ig-h,160px) !important;max-width:none !important;object-fit:contain !important}
+</style>
 <script>
+/* FollowThru footer Instagram feed. Source: https://github.com/Follow-Thru-Agency/followthru-instagram-feed */
 (function () {
-  var BASE = "https://cdn.jsdelivr.net/gh/Follow-Thru-Agency/followthru-instagram-feed@main/"; /* live site uses jsDelivr first, GitHub Pages as fallback */
+  var BASES = ["https://cdn.jsdelivr.net/gh/Follow-Thru-Agency/followthru-instagram-feed@main/", "https://follow-thru-agency.github.io/followthru-instagram-feed/"];
   var NEED = 9;
-
+  var SPEED = 30; /* px per second */
   function valid(p) {
     return p && typeof p.image === "string" && p.image &&
       typeof p.url === "string" && p.url.indexOf("https://www.instagram.com/") === 0;
   }
-
-  function apply(posts) {
+  function pace() {
+    var holder = document.querySelector(".footer-marquee-holder.ft-footer-marquee");
+    if (!holder) return;
+    var half = holder.scrollWidth / 2;
+    if (half > 0) holder.style.setProperty("animation-duration", Math.round(half / SPEED) + "s", "important");
+  }
+  function apply(posts, base) {
     var cards = document.querySelectorAll(".footer-marquee-holder .footer-marquee-card");
     for (var i = 0; i < cards.length; i++) {
       var post = posts[i % NEED];
@@ -21,14 +33,17 @@
       var img = card.querySelector("img.footer-marquee-image");
       var wrap = card.querySelector(".footer-marquee-image-wrapper");
       if (!img || !wrap) continue;
-      var src = /^https?:\/\//.test(post.image) ? post.image : BASE + post.image.replace(/^\//, "");
+      var h = Math.round(wrap.getBoundingClientRect().height);
+      if (h > 0) card.style.setProperty("--ft-ig-h", h + "px");
+      var src = /^https?:\/\//.test(post.image) ? post.image : base + post.image.replace(/^\//, "");
       img.removeAttribute("srcset");
       img.removeAttribute("sizes");
-      img.setAttribute("width", "600");
-      img.setAttribute("height", "600");
+      img.setAttribute("width", String(post.width || 480));
+      img.setAttribute("height", String(post.height || 480));
       img.src = src;
       img.alt = post.alt || "FollowThru on Instagram";
-
+      img.addEventListener("load", pace);
+      card.classList.add("ft-ig");
       var link = wrap.parentNode && wrap.parentNode.tagName === "A" ? wrap.parentNode :
         (card.tagName === "A" ? card : null);
       if (!link) {
@@ -44,31 +59,32 @@
       link.rel = "noopener";
       link.setAttribute("aria-label", "View on Instagram: " + img.alt);
     }
+    pace();
   }
-
-  function run() {
-    if (window.__ftIgFeed || !window.fetch) return;
-    window.__ftIgFeed = true;
-    if (!document.querySelector(".footer-marquee-holder .footer-marquee-card")) return;
+  function load(k) {
+    if (k >= BASES.length) { pace(); return; }
+    var base = BASES[k];
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 4000);
     var bust = Math.floor(new Date().getTime() / 3600000);
-    fetch(BASE + "feed.json?h=" + bust, ctrl ? { signal: ctrl.signal } : {})
+    fetch(base + "feed.json?h=" + bust, ctrl ? { signal: ctrl.signal } : {})
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (data) {
         clearTimeout(timer);
         var posts = [];
         var list = (data && data.posts) || [];
         for (var i = 0; i < list.length; i++) if (valid(list[i])) posts.push(list[i]);
-        if (posts.length >= NEED) apply(posts);
+        if (posts.length >= NEED) apply(posts, base); else load(k + 1);
       })
-      ["catch"](function () { clearTimeout(timer); });
+      ["catch"](function () { clearTimeout(timer); load(k + 1); });
   }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else {
-    run();
+  function run() {
+    if (window.__ftIgFeed || !window.fetch) return;
+    window.__ftIgFeed = true;
+    if (!document.querySelector(".footer-marquee-holder .footer-marquee-card")) return;
+    window.addEventListener("resize", pace);
+    load(0);
   }
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", run); } else { run(); }
 })();
 </script>

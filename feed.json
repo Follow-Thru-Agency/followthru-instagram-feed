@@ -1,59 +1,77 @@
 {
   "updated": "2026-10-13T21:11:29.184606Z",
-  "source": "manual seed 2026-10-13 (daily Apify job takes over once APIFY_TOKEN is set)",
+  "source": "manual seed 2026-10-13, re-seeded uncropped 2026-10-14 (daily Apify job takes over once APIFY_TOKEN is set)",
   "posts": [
     {
       "image": "images/DeHvPoaJwKc.jpg",
       "url": "https://www.instagram.com/reel/DeHvPoaJwKc/",
       "alt": "LLMs don’t care whether your website looks good. They care about the information you share",
+      "width": 270,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/Dd7HknJSyQQ.jpg",
       "url": "https://www.instagram.com/reel/Dd7HknJSyQQ/",
       "alt": "Every action your customer takes on your site has a cost. Make sure it’s worth it!",
+      "width": 270,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/DduB28iGoEf.jpg",
       "url": "https://www.instagram.com/p/DduB28iGoEf/",
       "alt": "October is your last clean window before BFCM, so test now.",
+      "width": 374,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/DdtwEsSIG6W.jpg",
       "url": "https://www.instagram.com/p/DdtwEsSIG6W/",
       "alt": "Good-looking metrics on your website don’t always mean they’re the right ones.",
+      "width": 360,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/DdrYSDpB_pK.jpg",
       "url": "https://www.instagram.com/p/DdrYSDpB_pK/",
       "alt": "If a shopper can’t answer that within a few seconds, your product page has work to do.",
+      "width": 384,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/Ddl6wLApaS7.jpg",
       "url": "https://www.instagram.com/reel/Ddl6wLApaS7/",
       "alt": "Your 1st image on your product page should show the product itself.",
+      "width": 270,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/DdEsqRVuDsw.jpg",
       "url": "https://www.instagram.com/p/DdEsqRVuDsw/",
       "alt": "Before scaling your ad budget, check where your store is losing revenue.",
+      "width": 480,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/DcjBZ1ph_Py.jpg",
       "url": "https://www.instagram.com/p/DcjBZ1ph_Py/",
       "alt": "Navigation is not just a utility for getting around a site.",
+      "width": 480,
+      "height": 480,
       "timestamp": null
     },
     {
       "image": "images/Dcgh1cToCNi.jpg",
       "url": "https://www.instagram.com/p/Dcgh1cToCNi/",
       "alt": "Are you leaving customers with questions on your website?",
+      "width": 480,
+      "height": 480,
       "timestamp": null
     }
   ]
